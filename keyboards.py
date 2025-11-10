@@ -4,8 +4,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 def get_exit_menu(current_page: str):
     """Универсальное меню выхода для конечных страниц"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')],
-        [InlineKeyboardButton(text='⏪ Назад', callback_data=f'back:{current_page}')]
+        [InlineKeyboardButton(text='⏪ Назад', callback_data=f'back:{current_page}')],
+        [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
+        
     ])
 
 
