@@ -36,10 +36,15 @@ async def catalog(callback: CallbackQuery):
     await callback.message.edit_text('edu_single_window', reply_markup=kb.exit_menu)
 
 
+# шаблон
+from utils import get_menu_text
 @router_edu.callback_query(F.data == 'edu_course1_practices')
 async def course1_practices(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text(f'Вы выбрали {callback.data}', reply_markup=kb.exit_menu)
+    text = get_menu_text(callback.data)
+    await callback.message.edit_text(
+        text, 
+        reply_markup=kb.get_exit_menu(callback.data)
+    )
 
 
 @router_edu.callback_query(F.data == 'edu_course1_english')

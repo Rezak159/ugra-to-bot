@@ -58,8 +58,38 @@ async def cmd_start(message: Message):
 @dp.callback_query(F.data == 'main_menu')
 async def catalog(callback: CallbackQuery):
     text = main_menu_text(callback.from_user.first_name)
+    await callback.answer()
     await callback.message.edit_text(text,
                                      reply_markup=kb.main_menu)
+    
+def get_parent_callback(current):
+    """Возвращает родительский callback на основе текущего"""
+    root_sections = {'edu', 'health', 'finance', 'documents', 'dormitory', 'help', 'events'}
+    
+    if current in root_sections:
+        return 'main_menu'
+
+    if '_' in current:
+        return current.rsplit('_', 1)[0]
+    
+    return 'main_menu'
+    
+from utils import get_menu_text
+@dp.callback_query(F.data.startswith('back:'))
+async def go_back(callback: CallbackQuery):
+    await callback.answer()
+    
+    # Извлекаем текущую позицию из callback
+    _, current = callback.data.split(':', 1)
+    
+    # Вычисляем родительское меню
+    parent = get_parent_callback(current)
+    
+    # Получаем клавиатуру и текст из JSON
+    keyboard = kb.KEYBOARDS.get(parent, kb.main_menu)
+    text = get_menu_text(parent, callback.from_user.first_name)
+    
+    await callback.message.edit_text(text, reply_markup=keyboard)
 
 
 @dp.message(F.text)

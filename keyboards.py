@@ -1,5 +1,15 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+
+def get_exit_menu(current_page: str):
+    """Универсальное меню выхода для конечных страниц"""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')],
+        [InlineKeyboardButton(text='⏪ Назад', callback_data=f'back:{current_page}')]
+    ])
+
+
+
 # === Главное меню ===
 main_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Образование 📖', callback_data='edu')],
@@ -29,7 +39,7 @@ course_1_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Деятельностные практики', callback_data='edu_course1_practices')],
     [InlineKeyboardButton(text='Английский язык', callback_data='edu_course1_english')],
     [InlineKeyboardButton(text='ЭДФК (пометка, что ТО не отвечает за это)', callback_data='edu_course1_edfk')],
-    [InlineKeyboardButton(text='⏪ Назад', callback_data='edu_menu')],
+    [InlineKeyboardButton(text='⏪ Назад', callback_data='back:edu_menu')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
@@ -41,7 +51,7 @@ course_2_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='ЭДФК (пометка, что ТО не отвечает за это)', callback_data='edu_course2_edfk')],
     [InlineKeyboardButton(text='Рабочие профессии', callback_data='edu_course2_professions')],
     [InlineKeyboardButton(text='Дисциплины по выбору (что такое / списки / переводы)', callback_data='edu_course2_choices')],
-    [InlineKeyboardButton(text='⏪ Назад', callback_data='edu_menu')],
+    [InlineKeyboardButton(text='⏪ Назад', callback_data='back:edu_menu')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
@@ -51,7 +61,7 @@ eluniver_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Справочник', callback_data='edu_eluniver_guide')],
     [InlineKeyboardButton(text='Учебный план', callback_data='edu_eluniver_plan')],
     [InlineKeyboardButton(text='Расписание', callback_data='edu_eluniver_schedule')],
-    [InlineKeyboardButton(text='⏪ Назад', callback_data='edu_menu')],
+    [InlineKeyboardButton(text='⏪ Назад', callback_data='back:edu_menu')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
@@ -104,3 +114,18 @@ events_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Декабрь...', callback_data='events_december')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
+
+
+KEYBOARDS = {
+    'main_menu': main_menu,
+    'edu': edu_menu,
+    'edu_course1': course_1_menu,
+    'edu_course2': course_2_menu,
+    'edu_eluniver': eluniver_menu,
+    'health': health_menu,
+    'finance': finance_menu,
+    'documents': documents_menu,
+    'dormitory': dormitory_menu,
+    'help': help_menu,
+    'events': events_menu,
+}
