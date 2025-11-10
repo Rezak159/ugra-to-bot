@@ -11,6 +11,11 @@ import keyboards as kb
 
 from handlers.edu import router_edu
 from handlers.health import router_health
+from handlers.finance import router_finance
+from handlers.documents import router_documents
+from handlers.dormitory import router_dormitory
+from handlers.help import router_help
+from handlers.events import router_events
 
 
 from config import TG_TOKEN
@@ -47,11 +52,16 @@ async def catalog(callback: CallbackQuery):
 @dp.message(F.text)
 async def echo(message: Message):
     await message.reply("🦄 Используй кнопки под сообщениями.\n"
-                        "Если потерялся используй /start")
+                        "Если потерялся, используй /start")
 
 async def main():
     dp.include_router(router_edu)
     dp.include_router(router_health)
+    dp.include_router(router_finance)
+    dp.include_router(router_documents)
+    dp.include_router(router_dormitory)
+    dp.include_router(router_help)
+    dp.include_router(router_events)
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
