@@ -29,7 +29,7 @@ exit_menu = InlineKeyboardMarkup(inline_keyboard=[
 edu_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='1 курс', callback_data='edu_course1')],
     [InlineKeyboardButton(text='2 курс', callback_data='edu_course2')],
-    [InlineKeyboardButton(text='Единое окно', callback_data='edu_single_window')],
+    [InlineKeyboardButton(text='Единое окно', callback_data='edu_singlewindow')],
     [InlineKeyboardButton(text='Учебная часть', callback_data='edu_part')],
     [InlineKeyboardButton(text='Электронный университет', callback_data='edu_eluniver')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
