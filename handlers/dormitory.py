@@ -23,7 +23,7 @@ async def cost_info(callback: CallbackQuery):
     await callback.message.edit_text('Вы выбрали dormitory_cost', reply_markup=kb.exit_menu)
 
 
-@router_dormitory.callback_query(F.data == 'dormitory_documents', reply_markup=kb.exit_menu)
+@router_dormitory.callback_query(F.data == 'dormitory_documents')
 async def documents_info(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text('Вы выбрали dormitory_documents', reply_markup=kb.exit_menu)

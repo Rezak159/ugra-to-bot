@@ -22,17 +22,30 @@ from config import TG_TOKEN
 bot = Bot(token=TG_TOKEN)
 dp = Dispatcher()
 
-def get_wheather():
-    API_key = 'b635acfaf84ddc68c16ec1764d0290fd'
-    lat = '61.000927'
-    lon = '69.029889'
+import datetime
 
-    import requests
-    req = requests.get(f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_key}")
+from utils import get_weather
 
 def main_menu_text(first_name):
-    return (f'Добрый день, {first_name}, ты в главном меню\n'
-            f'Сейчас на улице: -12 ❄️\n')
+    current_time = datetime.datetime.now()
+    hour = current_time.hour
+    
+    # Определяем приветствие
+    if 0 <= hour < 4:
+        text = '🌃 Доброй ночи'
+    elif 4 <= hour < 12:
+        text = '🌄 Доброе утро'
+    elif 12 <= hour < 18:
+        text = '☀️ Добрый день'
+    else:  # 18 <= hour < 24
+        text = '🌇 Добрый вечер'
+
+    # Получаем погоду
+    weather = get_weather()
+    temp_text = f"{weather['temp']} ❄️" if weather else "0 ❄️"
+
+    return (f'{text}, {first_name}, ты в главном меню\n'
+            f'Сейчас на улице: {temp_text}\n')
 
 
 @dp.message(CommandStart())
