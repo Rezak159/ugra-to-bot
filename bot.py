@@ -6,6 +6,8 @@ from aiogram import F
 
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 
 import keyboards as kb
 
@@ -19,7 +21,10 @@ from handlers.events import router_events
 
 
 from config import TG_TOKEN
-bot = Bot(token=TG_TOKEN)
+bot = Bot(
+    token=TG_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
 dp = Dispatcher()
 
 import datetime
