@@ -1,5 +1,5 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 
 import keyboards as kb
 from utils import get_menu_text
@@ -26,6 +26,12 @@ async def help_info(callback: CallbackQuery):
     await callback.answer()
     text = get_menu_text(callback.data)
     await callback.message.edit_text(text, reply_markup=kb.get_exit_menu(callback.data))
+
+    doc = FSInputFile("files/Материальная помощь.pdf")
+    await callback.message.answer_document(
+        document=doc,
+        caption="<b>Полное положение о материальной поддержке.</b>"
+    )
 
 
 @router_finance.callback_query(F.data == 'finance_cabinets')

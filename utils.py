@@ -52,7 +52,16 @@ def load_texts():
     # Загружаем из файла
     try:
         with open('texts.json', 'r', encoding='utf-8') as file:
-            _texts_cache = json.load(file)
+            data = json.load(file)
+            
+            # Обрабатываем массивы строк - объединяем их
+            _texts_cache = {}
+            for key, value in data.items():
+                if isinstance(value, list):
+                    _texts_cache[key] = "".join(value)
+                else:
+                    _texts_cache[key] = value
+            
             print("✅ Тексты загружены из texts.json")
     except FileNotFoundError:
         print("⚠️ Файл texts.json не найден")
@@ -60,6 +69,8 @@ def load_texts():
     except json.JSONDecodeError as e:
         print(f"❌ Ошибка в texts.json: {e}")
         _texts_cache = {}
+    
+    return _texts_cache
     
     return _texts_cache
 

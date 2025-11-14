@@ -15,7 +15,7 @@ def get_exit_menu(current_page: str):
 main_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Образование 📖', callback_data='edu')],
     [InlineKeyboardButton(text='Здоровье 🏥', callback_data='health')],
-    [InlineKeyboardButton(text='Стипендия 💰', callback_data='finance')],
+    [InlineKeyboardButton(text='Стипендия и мат-помощь 💰', callback_data='finance')],
     [InlineKeyboardButton(text='Документы 📄', callback_data='documents')],
     [InlineKeyboardButton(text='Общежитие 🏠', callback_data='dormitory')],
     [InlineKeyboardButton(text='Помощь 🆘', callback_data='help')],
@@ -70,7 +70,7 @@ eluniver_menu = InlineKeyboardMarkup(inline_keyboard=[
 health_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Прививки', callback_data='health_vaccinations')],
     [InlineKeyboardButton(text='Справки', callback_data='health_certificates')],
-    [InlineKeyboardButton(text='Окб / Профпаталогия', callback_data='health_okb')],
+    [InlineKeyboardButton(text='Прикрепление к поликлинике', callback_data='health_okb')],
     [InlineKeyboardButton(text='Заболел, куда обратиться?', callback_data='health_sick')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
@@ -78,8 +78,7 @@ health_menu = InlineKeyboardMarkup(inline_keyboard=[
 # === Стипендии ===
 finance_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Виды стипендий', callback_data='finance_types')],
-    [InlineKeyboardButton(text='Матпомощь', callback_data='finance_help')],
-    [InlineKeyboardButton(text='Кабинеты', callback_data='finance_cabinets')],
+    [InlineKeyboardButton(text='Мат-помощь', callback_data='finance_help')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
