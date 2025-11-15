@@ -29,7 +29,7 @@ dp = Dispatcher()
 
 import datetime
 
-from utils import get_weather
+from utils import get_weather, translate_weather_description, get_weather_emoji
 
 def main_menu_text(first_name):
     current_time = datetime.datetime.now()
@@ -37,21 +37,28 @@ def main_menu_text(first_name):
     
     # Определяем приветствие
     if 0 <= hour < 4:
-        text = '🌃 Доброй ночи'
+        text = 'Доброй ночи'
     elif 4 <= hour < 12:
-        text = '🌄 Доброе утро'
+        text = 'Доброе утро'
     elif 12 <= hour < 18:
-        text = '☀️ Добрый день'
+        text = 'Добрый день'
     else:  # 18 <= hour < 24
-        text = '🌇 Добрый вечер'
+        text = 'Добрый вечер'
 
     # Получаем погоду
-    # weather = get_weather()
-    # temp_text = f"{weather['temp']} ❄️" if weather else "0 ❄️"
-    temp_text = "0 ❄️"
+    weather = get_weather()
+    if weather:
+        temp = weather['temp']
+        temp_str = f'+{temp}' if temp > 0 else str(temp)
+        description = translate_weather_description(weather['description'])
+        emoji = get_weather_emoji(description)
+        weather_text = f"На улице: {temp_str} {emoji}\n"
+    else:
+        weather_text = ''
 
-    return (f'{text}, {first_name}, ты в главном меню\n'
-            f'Сейчас на улице: {temp_text}\n')
+    return (f'👋 {text}, <b>{first_name}!</b>\n'
+            f'{weather_text}'
+            f'Ты в главном меню. С чего начнём?\n')
 
 
 @dp.message(CommandStart())

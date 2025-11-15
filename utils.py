@@ -1,5 +1,18 @@
+import datetime
+from datetime import timedelta
+
+
+_weather_cache = {}
+
+
 def get_weather():
     import requests
+
+    now = datetime.datetime.now()
+    last_update = _weather_cache.get('weather_last_update', datetime.datetime(2000, 1, 1))
+    if _weather_cache:
+        if now - last_update < timedelta(hours=1):
+            return _weather_cache
     
     API_key = 'b635acfaf84ddc68c16ec1764d0290fd'
     lat = '61.000927'
@@ -25,7 +38,8 @@ def get_weather():
                 'feels_like': feels_like,
                 'description': description,
                 'humidity': humidity,
-                'wind_speed': wind_speed
+                'wind_speed': wind_speed,
+                'weather_last_update': datetime.datetime.now()
             }
         else:
             return None
@@ -99,3 +113,64 @@ def reload_texts():
     _texts_cache = None
     load_texts()
     print("🔄 Тексты перезагружены")
+
+
+def translate_weather_description(description):
+    """Переводит описание погоды на русский"""
+    translations = {
+        'clear sky': 'ясно',
+        'few clouds': 'малооблачно',
+        'scattered clouds': 'облачно',
+        'broken clouds': 'облачно',
+        'overcast clouds': 'пасмурно',
+        'light rain': 'небольшой дождь',
+        'moderate rain': 'дождь',
+        'heavy rain': 'сильный дождь',
+        'snow': 'снег',
+        'mist': 'туман',
+        'thunderstorm': 'гроза'
+    }
+    return translations.get(description, description)
+
+def get_weather_emoji(description):
+    """Подбирает эмодзи в зависимости от типа погоды"""
+    description = description.lower()
+    
+    # Гроза
+    if 'thunderstorm' in description or 'гроза' in description:
+        return '⛈️'
+    
+    # Снег
+    elif 'snow' in description or 'снег' in description:
+        return '🌨️'
+    elif 'sleet' in description or 'град' in description:
+        return '🌨️'
+    
+    # Дождь
+    elif 'rain' in description or 'дождь' in description:
+        if 'light' in description or 'небольшой' in description:
+            return '🌦️'
+        return '🌧️'
+    elif 'drizzle' in description or 'морось' in description:
+        return '🌦️'
+    
+    # Туман, дымка
+    elif any(word in description for word in ['mist', 'fog', 'haze', 'туман', 'дымка']):
+        return '🌫️'
+    
+    # Облачность
+    elif 'overcast' in description or 'пасмурно' in description:
+        return '☁️'
+    elif 'clouds' in description or 'облачно' in description:
+        if 'few' in description or 'малооблачно' in description:
+            return '🌤️'
+        elif 'scattered' in description or 'broken' in description:
+            return '⛅'
+        return '☁️'
+    
+    # Ясно
+    elif 'clear' in description or 'ясно' in description:
+        return '☀️'
+    
+    # По умолчанию
+    return '🌡️'
