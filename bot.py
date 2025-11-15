@@ -46,8 +46,9 @@ def main_menu_text(first_name):
         text = '🌇 Добрый вечер'
 
     # Получаем погоду
-    weather = get_weather()
-    temp_text = f"{weather['temp']} ❄️" if weather else "0 ❄️"
+    # weather = get_weather()
+    # temp_text = f"{weather['temp']} ❄️" if weather else "0 ❄️"
+    temp_text = "0 ❄️"
 
     return (f'{text}, {first_name}, ты в главном меню\n'
             f'Сейчас на улице: {temp_text}\n')

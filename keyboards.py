@@ -75,10 +75,16 @@ health_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
-# === Стипендии ===
+# === Стипендии и мат-помощь ===
 finance_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Виды стипендий', callback_data='finance_types')],
     [InlineKeyboardButton(text='Мат-помощь', callback_data='finance_help')],
+    [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
+])
+
+finance_help_menu = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Куда нести заявление?', callback_data='finance_help_cabinet')],
+    [InlineKeyboardButton(text='⏪ Назад', callback_data='back:finance_menu')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
@@ -123,6 +129,7 @@ KEYBOARDS = {
     'edu_course2': course_2_menu,
     'edu_eluniver': eluniver_menu,
     'health': health_menu,
+    'finance_help': finance_help_menu,
     'finance': finance_menu,
     'documents': documents_menu,
     'dormitory': dormitory_menu,
