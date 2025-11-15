@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 from aiogram import F
 
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, BotCommand, BotCommandScopeDefault
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
@@ -102,6 +102,14 @@ async def go_back(callback: CallbackQuery):
 async def echo(message: Message):
     await message.reply("🦄 Используй кнопки под сообщениями.\n"
                         "Если потерялся, используй /start")
+    
+
+async def set_commands(bot: Bot):
+    commands = [
+        BotCommand(command='start', description='Открыть меню')
+    ]
+    await bot.set_my_commands(commands, BotCommandScopeDefault())
+
 
 async def main():
     dp.include_router(router_edu)
@@ -111,6 +119,8 @@ async def main():
     dp.include_router(router_dormitory)
     dp.include_router(router_help)
     dp.include_router(router_events)
+
+    await set_commands(bot)
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
