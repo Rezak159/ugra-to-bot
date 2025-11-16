@@ -10,6 +10,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 import keyboards as kb
+import dbtools
 
 from handlers.edu import router_edu
 from handlers.health import router_health
@@ -53,6 +54,10 @@ async def handle_interaction_error(event, exc: Exception):
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
     try:
+        # Добавляем пользователя в БД
+        username = message.from_user.username or message.from_user.first_name or "Unknown"
+        dbtools.add_user(message.from_user.id, username)
+        
         text = main_menu_text(message.from_user.first_name)
         await message.answer(text, reply_markup=kb.main_menu)
     except Exception as exc:
@@ -97,7 +102,7 @@ async def go_back(callback: CallbackQuery):
         
         await callback.message.edit_text(text, reply_markup=keyboard)
     except Exception as exc:
-        await handle_interaction_error(message, exc)
+        await handle_interaction_error(callback, exc)
 
 @dp.message(F.text)
 async def echo(message: Message):
