@@ -19,6 +19,7 @@ from handlers.dormitory import router_dormitory
 from handlers.help import router_help
 from handlers.events import router_events
 
+from utils import main_menu_text, get_menu_text
 
 from config import TG_TOKEN
 bot = Bot(
@@ -27,53 +28,45 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-import datetime
 
-from utils import get_weather, translate_weather_description, get_weather_emoji
+ERROR_TEXT = "😔 Что-то пошло не так. Попробуйте позже."
 
-def main_menu_text(first_name):
-    current_time = datetime.datetime.now()
-    hour = current_time.hour
-    
-    # Определяем приветствие
-    if 0 <= hour < 4:
-        text = 'Доброй ночи'
-    elif 4 <= hour < 12:
-        text = 'Доброе утро'
-    elif 12 <= hour < 18:
-        text = 'Добрый день'
-    else:  # 18 <= hour < 24
-        text = 'Добрый вечер'
 
-    # Получаем погоду
-    weather = get_weather()
-    if weather:
-        temp = weather['temp']
-        temp_str = f'+{temp}' if temp > 0 else str(temp)
-        description = translate_weather_description(weather['description'])
-        emoji = get_weather_emoji(description)
-        weather_text = f"На улице: {temp_str} {emoji}\n"
-    else:
-        weather_text = ''
-
-    return (f'👋 {text}, <b>{first_name}!</b>\n'
-            f'{weather_text}'
-            f'Ты в главном меню. С чего начнём?\n')
+async def handle_interaction_error(event, exc: Exception):
+    logging.exception("Unhandled error during bot interaction", exc_info=exc)
+    if isinstance(event, CallbackQuery):
+        try:
+            await event.answer(ERROR_TEXT, show_alert=True)
+        except Exception:
+            pass
+        try:
+            await event.message.answer(ERROR_TEXT)
+        except Exception:
+            pass
+    elif isinstance(event, Message):
+        try:
+            await event.answer(ERROR_TEXT)
+        except Exception:
+            pass
 
 
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
-    text = main_menu_text(message.from_user.first_name)
-    await message.answer(text,
-                        reply_markup=kb.main_menu)
+    try:
+        text = main_menu_text(message.from_user.first_name)
+        await message.answer(text, reply_markup=kb.main_menu)
+    except Exception as exc:
+        await handle_interaction_error(message, exc)
 
 
 @dp.callback_query(F.data == 'main_menu')
 async def catalog(callback: CallbackQuery):
-    text = main_menu_text(callback.from_user.first_name)
-    await callback.answer()
-    await callback.message.edit_text(text,
-                                     reply_markup=kb.main_menu)
+    try:
+        text = main_menu_text(callback.from_user.first_name)
+        await callback.answer()
+        await callback.message.edit_text(text, reply_markup=kb.main_menu)
+    except Exception as exc:
+        await handle_interaction_error(callback, exc)
     
 def get_parent_callback(current):
     """Возвращает родительский callback на основе текущего"""
@@ -87,28 +80,32 @@ def get_parent_callback(current):
     
     return 'main_menu'
     
-from utils import get_menu_text
 @dp.callback_query(F.data.startswith('back:'))
 async def go_back(callback: CallbackQuery):
-    await callback.answer()
-    
-    # Извлекаем текущую позицию из callback
-    _, current = callback.data.split(':', 1)
-    
-    # Вычисляем родительское меню
-    parent = get_parent_callback(current)
-    
-    # Получаем клавиатуру и текст из JSON
-    keyboard = kb.KEYBOARDS.get(parent, kb.main_menu)
-    text = get_menu_text(parent, callback.from_user.first_name)
-    
-    await callback.message.edit_text(text, reply_markup=keyboard)
-
+    try:
+        await callback.answer()
+        
+        # Извлекаем текущую позицию из callback
+        _, current = callback.data.split(':', 1)
+        
+        # Вычисляем родительское меню
+        parent = get_parent_callback(current)
+        
+        # Получаем клавиатуру и текст из JSON
+        keyboard = kb.KEYBOARDS.get(parent, kb.main_menu)
+        text = get_menu_text(parent, callback.from_user.first_name)
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
+    except Exception as exc:
+        await handle_interaction_error(message, exc)
 
 @dp.message(F.text)
 async def echo(message: Message):
-    await message.reply("🦄 Используй кнопки под сообщениями.\n"
-                        "Если потерялся, используй /start")
+    try:
+        await message.reply("🦄 Используй кнопки под сообщениями.\n"
+                            "Если потерялся, используй /start")
+    except Exception as exc:
+        await handle_interaction_error(message, exc)
     
 
 async def set_commands(bot: Bot):
