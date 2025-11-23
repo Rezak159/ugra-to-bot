@@ -6,21 +6,45 @@ from html import escape
 import requests
 from aiogram.exceptions import TelegramBadRequest
 
-
-async def safe_edit_message(message, text):
-    """Edit message text without crashing on `message is not modified` errors."""
+async def safe_edit_message(message, text, reply_markup=None):
+    """
+    Изменяет текст сообщения с обработкой распространённых ошибок Telegram.
+    """
     current_text = getattr(message, "text", None)
-
-    # Skip redundant edits when both text and markup already match the target.
-    if current_text == text:
+    current_markup = getattr(message, "reply_markup", None)
+    
+    # Пропускаем изменение, если текст и разметка не изменились
+    if current_text == text and (reply_markup is None or current_markup == reply_markup):
         return
-
+    
+    # Паттерны безопасных (игнорируемых) ошибок
+    SAFE_ERRORS = {
+        "message is not modified",
+        "message can't be edited",
+        "message to edit not found",
+        "message to delete not found",
+        "message not found",
+        "message text is empty"
+    }
+    
     try:
-        await message.edit_text(text)
+        await message.edit_text(text, reply_markup=reply_markup)
+        
     except TelegramBadRequest as exc:
-        if "message is not modified" in str(exc).lower():
+        error_text = str(exc).lower()
+        
+        # Проверяем, является ли ошибка безопасной
+        if any(safe_error in error_text for safe_error in SAFE_ERRORS):
             return
+        
+        # Все остальные неизвестные ошибки пробрасываем дальше
         raise
+    
+    except Exception as exc:
+        # Универсальный обработчик для всех остальных типов ошибок
+        # (не TelegramBadRequest, например сетевые ошибки)
+        raise
+
 
 _weather_cache = {}
 
