@@ -74,6 +74,7 @@ async def cmd_start(message: Message):
         await handle_interaction_error(message, exc)
 
 
+
 @dp.callback_query(F.data == 'main_menu')
 async def catalog(callback: CallbackQuery):
     try:
@@ -121,6 +122,46 @@ async def go_back(callback: CallbackQuery):
         await safe_edit_message(callback.message, text, reply_markup=keyboard)
     except Exception as exc:
         await handle_interaction_error(callback, exc)
+
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, KeyboardButtonRequestChat
+from aiogram.filters import Command
+
+@dp.message(Command("check"))
+async def cmd_check(message: Message):
+    # Создаем кнопку запроса чата
+    # request_id - любой уникальный ID запроса, чтобы различать кнопки
+    btn_request = KeyboardButton(
+        text="📢 Выбрать группу", 
+        request_chat=KeyboardButtonRequestChat(
+            request_id=1488,
+            request_title=True,
+            chat_is_channel=False,
+            chat_is_forum=False
+        )
+    )
+    
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[btn_request]],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    
+    await message.answer(
+        "Нажмите кнопку ниже, чтобы выбрать группу и узнать её ID:", 
+        reply_markup=keyboard
+    )
+
+#  Ловит результат выбора (ID группы)
+@dp.message(F.chat_shared)
+async def on_chat_shared(message: Message):
+    chat_id = message.chat_shared.chat_id
+    chat_title = message.chat_shared.title
+    
+    await message.answer(
+        f"✅ Вы выбрали группу: <b>{chat_title}</b>\n"
+        f"🆔 ID группы: <code>{chat_id}</code>"
+    )
+
 
 @dp.message(F.text)
 async def echo(message: Message):
