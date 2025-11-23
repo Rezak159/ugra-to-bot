@@ -4,7 +4,9 @@ from aiogram.types import CallbackQuery
 import keyboards as kb
 from utils import get_menu_text, safe_edit_message
 
+from middleware import Middleware
 router_dormitory = Router()
+router_dormitory.callback_query.middleware(Middleware())
 
 
 @router_dormitory.callback_query(F.data == 'dormitory')

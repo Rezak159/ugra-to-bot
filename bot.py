@@ -49,12 +49,23 @@ async def handle_interaction_error(event, exc: Exception):
         except Exception:
             pass
 
+from middleware import check_user_in_group
 
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
     try:
-        # Добавляем пользователя в БД
+        if message.chat.type != 'private':
+            return
+
         username = message.from_user.username or message.from_user.first_name or "Unknown"
+        # Проверка на членство
+        is_member = await check_user_in_group(bot, message.from_user.id, username)
+
+        if not is_member:
+            await message.answer("❌ У вас нет доступа")
+            return
+        
+        # Добавляем пользователя в БД
         dbtools.add_user(message.from_user.id, username)
         
         text = main_menu_text(message.from_user.first_name)
@@ -66,6 +77,10 @@ async def cmd_start(message: Message):
 @dp.callback_query(F.data == 'main_menu')
 async def catalog(callback: CallbackQuery):
     try:
+        if not callback.message or callback.message.chat.type != 'private':
+            await callback.answer('Бот доступен только в личных сообщениях', show_alert=True)
+            return
+
         text = main_menu_text(callback.from_user.first_name)
         await callback.answer()
         await safe_edit_message(callback.message, text, reply_markup=kb.main_menu)
@@ -87,6 +102,10 @@ def get_parent_callback(current):
 @dp.callback_query(F.data.startswith('back:'))
 async def go_back(callback: CallbackQuery):
     try:
+        if not callback.message or callback.message.chat.type != 'private':
+            await callback.answer('Бот доступен только в личных сообщениях', show_alert=True)
+            return
+
         await callback.answer()
         
         # Извлекаем текущую позицию из callback
@@ -106,6 +125,9 @@ async def go_back(callback: CallbackQuery):
 @dp.message(F.text)
 async def echo(message: Message):
     try:
+        if message.chat.type != 'private':
+            return
+
         await message.reply("🦄 Используй кнопки под сообщениями.\n"
                             "Если потерялся, используй /start")
     except Exception as exc:

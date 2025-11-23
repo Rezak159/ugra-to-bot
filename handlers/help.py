@@ -4,7 +4,9 @@ from aiogram.types import CallbackQuery
 import keyboards as kb
 from utils import get_menu_text, safe_edit_message
 
+from middleware import Middleware
 router_help = Router()
+router_help.callback_query.middleware(Middleware())
 
 
 @router_help.callback_query(F.data == 'help')

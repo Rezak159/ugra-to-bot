@@ -4,7 +4,9 @@ from aiogram.types import CallbackQuery, FSInputFile
 import keyboards as kb
 from utils import get_menu_text, safe_edit_message
 
+from middleware import Middleware
 router_finance = Router()
+router_finance.callback_query.middleware(Middleware())
 
 
 @router_finance.callback_query(F.data == 'finance')
