@@ -19,7 +19,7 @@ main_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Документы 📄', callback_data='documents')],
     [InlineKeyboardButton(text='Общежитие 🏠', callback_data='dormitory')],
     [InlineKeyboardButton(text='Помощь 🆘', callback_data='help')],
-    [InlineKeyboardButton(text='Афиша 🎭', callback_data='events')]
+    [InlineKeyboardButton(text='Афиша 🎭', url='https://www.google.com')]
 ])
 
 exit_menu = InlineKeyboardMarkup(inline_keyboard=[
@@ -114,14 +114,6 @@ help_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
-# === Афиша ===
-events_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Ноябрь - 5 полей ценностей', callback_data='events_november')],
-    [InlineKeyboardButton(text='Декабрь...', callback_data='events_december')],
-    [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
-])
-
-
 KEYBOARDS = {
     'main_menu': main_menu,
     'edu': edu_menu,
@@ -134,5 +126,4 @@ KEYBOARDS = {
     'documents': documents_menu,
     'dormitory': dormitory_menu,
     'help': help_menu,
-    'events': events_menu,
 }

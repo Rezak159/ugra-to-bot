@@ -18,9 +18,8 @@ from handlers.finance import router_finance
 from handlers.documents import router_documents
 from handlers.dormitory import router_dormitory
 from handlers.help import router_help
-from handlers.events import router_events
 
-from utils import main_menu_text, get_menu_text
+from utils import main_menu_text, get_menu_text, safe_edit_message
 
 from config import TG_TOKEN
 bot = Bot(
@@ -69,13 +68,13 @@ async def catalog(callback: CallbackQuery):
     try:
         text = main_menu_text(callback.from_user.first_name)
         await callback.answer()
-        await callback.message.edit_text(text, reply_markup=kb.main_menu)
+        await safe_edit_message(callback.message, text, reply_markup=kb.main_menu)
     except Exception as exc:
         await handle_interaction_error(callback, exc)
     
 def get_parent_callback(current):
     """Возвращает родительский callback на основе текущего"""
-    root_sections = {'edu', 'health', 'finance', 'documents', 'dormitory', 'help', 'events'}
+    root_sections = {'edu', 'health', 'finance', 'documents', 'dormitory', 'help'}
     
     if current in root_sections:
         return 'main_menu'
@@ -99,8 +98,8 @@ async def go_back(callback: CallbackQuery):
         # Получаем клавиатуру и текст из JSON
         keyboard = kb.KEYBOARDS.get(parent, kb.main_menu)
         text = get_menu_text(parent, callback.from_user.first_name)
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
+
+        await safe_edit_message(callback.message, text, reply_markup=keyboard)
     except Exception as exc:
         await handle_interaction_error(callback, exc)
 
@@ -127,7 +126,6 @@ async def main():
     dp.include_router(router_documents)
     dp.include_router(router_dormitory)
     dp.include_router(router_help)
-    dp.include_router(router_events)
 
     await set_commands(bot)
     await dp.start_polling(bot)
