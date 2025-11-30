@@ -107,12 +107,10 @@ dormitory_menu = InlineKeyboardMarkup(inline_keyboard=[
 # === Помощь ===
 help_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Потеряшки', callback_data='help_lost')],
-    [InlineKeyboardButton(text='Связь с тьютором', callback_data='help_tutor')],
-    [InlineKeyboardButton(text='Тьюториалы (гайды)', callback_data='help_tutorials')],
-    [InlineKeyboardButton(text='Частые вопросы', callback_data='help_faq')],
-    [InlineKeyboardButton(text='Поддержка', callback_data='help_support')],
+    [InlineKeyboardButton(text='Связь с тьютором', callback_data='help_tutor')]
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
+
 
 KEYBOARDS = {
     'main_menu': main_menu,
