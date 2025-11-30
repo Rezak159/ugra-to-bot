@@ -30,7 +30,7 @@ async def tutor(callback: CallbackQuery):
     await safe_edit_message(callback.message, text, reply_markup=kb.get_exit_menu(callback.data))
 
 
-@router_help.callback_query(F.data == 'who_is_tutor')
+@router_help.callback_query(F.data == 'help_who-is-tutor')
 async def tutorials(callback: CallbackQuery):
     await callback.answer()
     text = get_menu_text(callback.data)

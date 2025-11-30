@@ -106,7 +106,7 @@ dormitory_menu = InlineKeyboardMarkup(inline_keyboard=[
 
 # === Помощь ===
 help_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Кто такой тьютор', callback_data='who_is_tutor')],
+    [InlineKeyboardButton(text='Кто такой тьютор', callback_data='help_who-is-tutor')],
     [InlineKeyboardButton(text='Связь с тьютором', callback_data='help_tutor')],
     [InlineKeyboardButton(text='Потеряшки', callback_data='help_lost')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
