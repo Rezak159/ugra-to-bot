@@ -20,6 +20,7 @@ from handlers.dormitory import router_dormitory
 from handlers.help import router_help
 
 from utils import main_menu_text, get_menu_text, safe_edit_message
+import stats
 
 from config import TG_TOKEN
 bot = Bot(
@@ -67,6 +68,8 @@ async def cmd_start(message: Message):
         
         # Добавляем пользователя в БД
         dbtools.add_user(message.from_user.id, username)
+        dbtools.update_last_request(message.from_user.id)
+        stats.log_request(message.from_user.id, username, "command:/start")
         
         text = main_menu_text(message.from_user.first_name)
         await message.answer(text, reply_markup=kb.main_menu)
@@ -145,7 +148,9 @@ async def cmd_check(message: Message):
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    
+    dbtools.update_last_request(message.from_user.id)
+    stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "command:/check")
+
     await message.answer(
         "Нажмите кнопку ниже, чтобы выбрать группу и узнать её ID:", 
         reply_markup=keyboard
@@ -156,6 +161,8 @@ async def cmd_check(message: Message):
 async def on_chat_shared(message: Message):
     chat_id = message.chat_shared.chat_id
     chat_title = message.chat_shared.title
+    dbtools.update_last_request(message.from_user.id)
+    stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "chat_shared")
     
     await message.answer(
         f"✅ Вы выбрали группу: <b>{chat_title}</b>\n"
@@ -168,6 +175,9 @@ async def echo(message: Message):
     try:
         if message.chat.type != 'private':
             return
+
+        dbtools.update_last_request(message.from_user.id)
+        stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "text:unknown")
 
         await message.reply("🦄 Используй кнопки под сообщениями.\n"
                             "Если потерялся, используй /start")

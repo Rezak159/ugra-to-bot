@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from aiogram.enums import ChatMemberStatus
 
 import dbtools
+import stats
 
 CHAT_LIST = [-5060610445]
 MEMBERSHIP_TTL = timedelta(minutes=20)
@@ -84,6 +85,13 @@ class Middleware(BaseMiddleware):
             text = '❌ У вас нет доступа'
             await event.answer(text, show_alert=True)
             return
+
+        dbtools.update_last_request(user_id)
+        try:
+            action = f"callback:{event.data}" if hasattr(event, "data") else "callback:unknown"
+            stats.log_request(user_id, username, action)
+        except Exception as exc:
+            print(f"Ошибка логирования запроса: {exc}")
             
         # ОБЯЗАТЕЛЬНО вызвать, чтобы продолжить обработку
         result = await handler(event, data)
