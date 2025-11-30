@@ -18,7 +18,7 @@ main_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Стипендия и мат-помощь 💰', callback_data='finance')],
     [InlineKeyboardButton(text='Документы 📄', callback_data='documents')],
     [InlineKeyboardButton(text='Общежитие 🏠', callback_data='dormitory')],
-    [InlineKeyboardButton(text='Помощь 🆘', callback_data='help')],
+    [InlineKeyboardButton(text='Помощь и тьюторы 🆘', callback_data='help')],
     [InlineKeyboardButton(text='Афиша 🎭', url='https://www.google.com')]
 ])
 
@@ -106,8 +106,9 @@ dormitory_menu = InlineKeyboardMarkup(inline_keyboard=[
 
 # === Помощь ===
 help_menu = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Кто такой тьютор', callback_data='who_is_tutor')],
+    [InlineKeyboardButton(text='Связь с тьютором', callback_data='help_tutor')],
     [InlineKeyboardButton(text='Потеряшки', callback_data='help_lost')],
-    [InlineKeyboardButton(text='Связь с тьютором', callback_data='help_tutor')]
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]
 ])
 
