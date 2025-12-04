@@ -47,7 +47,9 @@ course_1_menu = InlineKeyboardMarkup(inline_keyboard=[
 course_2_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='МООК', callback_data='edu_course2_mooc')],
     [InlineKeyboardButton(text='ДПО', callback_data='edu_course2_dpo')],
+    [InlineKeyboardButton(text='Деятельностные практики', callback_data='edu_course2_activity')],
     [InlineKeyboardButton(text='Проектная деятельность', callback_data='edu_course2_project')],
+    [InlineKeyboardButton(text='ЭДФК', callback_data='edu_course2_edfk')],
     [InlineKeyboardButton(text='Рабочие профессии', callback_data='edu_course2_professions')],
     [InlineKeyboardButton(text='Дисциплины по выбору', callback_data='edu_course2_choices')],
     [InlineKeyboardButton(text='⏪ Назад', callback_data='back:edu_menu')],
