@@ -1,5 +1,8 @@
 import asyncio
 import logging
+import os
+from logging.handlers import RotatingFileHandler
+from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher
 from aiogram import F
@@ -23,6 +26,46 @@ from utils import main_menu_text, get_menu_text, safe_edit_message
 import stats
 
 from config import TG_TOKEN
+
+# Настройка логирования
+EKB_TZ = ZoneInfo("Asia/Yekaterinburg")
+LOGS_DIR = "logs"
+BOT_LOG_FILE = os.path.join(LOGS_DIR, "bot.log")
+
+# Создаем папку для логов, если её нет
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+# Настраиваем формат логов
+log_format = logging.Formatter(
+    '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Создаем обработчик для файла с ротацией (макс. 10 МБ, 5 файлов)
+file_handler = RotatingFileHandler(
+    BOT_LOG_FILE,
+    maxBytes=10 * 1024 * 1024,  # 10 МБ
+    backupCount=5,
+    encoding='utf-8'
+)
+file_handler.setLevel(logging.ERROR)  # Только ошибки и критические
+file_handler.setFormatter(log_format)
+
+# Создаем обработчик для консоли
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(log_format)
+
+# Настраиваем корневой логгер
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# Настраиваем логгер для aiogram
+aiogram_logger = logging.getLogger('aiogram')
+aiogram_logger.setLevel(logging.WARNING)  # Только предупреждения и ошибки
+
 bot = Bot(
     token=TG_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML)
@@ -34,14 +77,39 @@ ERROR_TEXT = "😔 Что-то пошло не так. Попробуйте по
 
 
 async def handle_interaction_error(event, exc: Exception):
-    logging.exception("Unhandled error during bot interaction", exc_info=exc)
+    """Обработка ошибок взаимодействия с ботом"""
+    # Получаем информацию о пользователе и событии
+    user_id = None
+    username = "Unknown"
+    event_type = "Unknown"
+    
+    if isinstance(event, CallbackQuery):
+        user_id = event.from_user.id if event.from_user else None
+        username = (event.from_user.username or event.from_user.first_name or "Unknown") if event.from_user else "Unknown"
+        event_type = f"CallbackQuery: {event.data if hasattr(event, 'data') else 'unknown'}"
+    elif isinstance(event, Message):
+        user_id = event.from_user.id if event.from_user else None
+        username = (event.from_user.username or event.from_user.first_name or "Unknown") if event.from_user else "Unknown"
+        event_type = f"Message: {event.text[:50] if event.text else 'no text'}"
+    
+    # Логируем ошибку с контекстом
+    logger.error(
+        f"Ошибка при обработке события | "
+        f"Пользователь: {username} (ID: {user_id}) | "
+        f"Тип события: {event_type} | "
+        f"Ошибка: {type(exc).__name__}: {str(exc)}",
+        exc_info=exc
+    )
+    
+    # Отправляем сообщение пользователю
     if isinstance(event, CallbackQuery):
         try:
             await event.answer(ERROR_TEXT, show_alert=True)
         except Exception:
             pass
         try:
-            await event.message.answer(ERROR_TEXT)
+            if event.message:
+                await event.message.answer(ERROR_TEXT)
         except Exception:
             pass
     elif isinstance(event, Message):
@@ -192,6 +260,47 @@ async def set_commands(bot: Bot):
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 
+async def errors_handler(event, exception):
+    """Глобальный обработчик ошибок aiogram"""
+    try:
+        user_id = None
+        username = "Unknown"
+        event_type = "Unknown"
+        
+        # Определяем тип события и извлекаем информацию о пользователе
+        if isinstance(event, Message):
+            user_id = event.from_user.id if event.from_user else None
+            username = (event.from_user.username or event.from_user.first_name or "Unknown") if event.from_user else "Unknown"
+            event_type = f"Message: {event.text[:50] if event.text else 'no text'}"
+        elif isinstance(event, CallbackQuery):
+            user_id = event.from_user.id if event.from_user else None
+            username = (event.from_user.username or event.from_user.first_name or "Unknown") if event.from_user else "Unknown"
+            event_type = f"CallbackQuery: {event.data if hasattr(event, 'data') else 'unknown'}"
+        elif hasattr(event, 'update') and event.update:
+            # Если это объект Update
+            update = event.update
+            if update.message:
+                user_id = update.message.from_user.id if update.message.from_user else None
+                username = (update.message.from_user.username or update.message.from_user.first_name or "Unknown") if update.message.from_user else "Unknown"
+                event_type = "Update.Message"
+            elif update.callback_query:
+                user_id = update.callback_query.from_user.id if update.callback_query.from_user else None
+                username = (update.callback_query.from_user.username or update.callback_query.from_user.first_name or "Unknown") if update.callback_query.from_user else "Unknown"
+                event_type = "Update.CallbackQuery"
+        
+        logger.error(
+            f"Необработанная ошибка aiogram | "
+            f"Пользователь: {username} (ID: {user_id}) | "
+            f"Тип события: {event_type} | "
+            f"Тип ошибки: {type(exception).__name__} | "
+            f"Ошибка: {str(exception)}",
+            exc_info=exception
+        )
+    except Exception as log_exc:
+        logger.error(f"Ошибка при логировании ошибки: {log_exc}", exc_info=log_exc)
+    
+    return True  # Возвращаем True, чтобы aiogram не логировал ошибку повторно
+
 async def main():
     dp.include_router(router_edu)
     dp.include_router(router_health)
@@ -199,17 +308,25 @@ async def main():
     dp.include_router(router_documents)
     dp.include_router(router_dormitory)
     dp.include_router(router_help)
+    
+    # Регистрируем глобальный обработчик ошибок
+    dp.errors.register(errors_handler)
 
     await set_commands(bot)
+    logger.info("Бот успешно запущен")
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    # logging.basicConfig(level=logging.INFO)
     try:
+        logger.info("Запуск бота...")
         print('Успешный запуск.')
         asyncio.run(main())
     except KeyboardInterrupt:
+        logger.info("Остановка бота по запросу пользователя")
         print('Exit')
+    except Exception as exc:
+        logger.critical(f"Критическая ошибка при запуске бота: {exc}", exc_info=exc)
+        raise
 
 
 
