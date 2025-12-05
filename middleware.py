@@ -7,8 +7,8 @@ from aiogram.enums import ChatMemberStatus
 
 import dbtools
 import stats
+from config import CHAT_LIST
 
-CHAT_LIST = [-5060610445]
 MEMBERSHIP_TTL = timedelta(minutes=20)
 
 
