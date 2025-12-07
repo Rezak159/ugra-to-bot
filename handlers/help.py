@@ -36,3 +36,4 @@ async def tutorials(callback: CallbackQuery):
     text = get_menu_text(callback.data)
     await safe_edit_message(callback.message, text, reply_markup=kb.get_exit_menu(callback.data))
 
+

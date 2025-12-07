@@ -1,3 +1,4 @@
+import logging
 from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 from typing import Callable, Dict, Any, Awaitable, Optional
@@ -7,8 +8,9 @@ from aiogram.enums import ChatMemberStatus
 
 import dbtools
 import stats
+from config import CHAT_LIST
 
-CHAT_LIST = [-5060610445]
+logger = logging.getLogger(__name__)
 MEMBERSHIP_TTL = timedelta(minutes=20)
 
 
@@ -59,7 +61,7 @@ async def check_user_in_group(bot, user_id, username: Optional[str] = None):
 
         return is_member
     except Exception as e:
-        print(f"Ошибка при проверке: {e}")
+        logger.error(f"Ошибка при проверке членства пользователя {user_id}: {e}", exc_info=e)
         return bool(user and user.get("is_member"))
 
 class Middleware(BaseMiddleware):
@@ -91,7 +93,7 @@ class Middleware(BaseMiddleware):
             action = f"callback:{event.data}" if hasattr(event, "data") else "callback:unknown"
             stats.log_request(user_id, username, action)
         except Exception as exc:
-            print(f"Ошибка логирования запроса: {exc}")
+            logger.error(f"Ошибка логирования запроса для пользователя {user_id}: {exc}", exc_info=exc)
             
         # ОБЯЗАТЕЛЬНО вызвать, чтобы продолжить обработку
         result = await handler(event, data)
