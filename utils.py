@@ -2,7 +2,7 @@ import datetime
 import json
 from datetime import timedelta
 from html import escape
-
+import re
 import requests
 from aiogram.exceptions import TelegramBadRequest
 
@@ -265,3 +265,47 @@ def update_chat_list_in_config(chat_list):
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Ошибка при сохранении CHAT_LIST в config.py: {e}", exc_info=e)
+
+def add_chat_to_config(chat_id: int, chat_list):
+    """Добавляет chat_id в CHAT_LIST в памяти и в config.py"""
+    
+    if chat_id in chat_list:
+        return False
+    
+    chat_list.append(chat_id)
+    
+    with open('config.py', 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    for i, line in enumerate(lines):
+        if line.strip().startswith('CHAT_LIST'):
+            new_line = f"CHAT_LIST = {chat_list}\n"
+            lines[i] = new_line
+            break
+
+    with open('config.py', 'w', encoding='utf-8') as f:
+        f.writelines(lines)
+    
+    return True
+
+def remove_chat_from_config(chat_id: int, chat_list):
+    """Удаляет chat_id из CHAT_LIST в памяти и в config.py"""
+    
+    if chat_id not in chat_list:
+        return False
+    
+    chat_list.remove(chat_id)
+    
+    with open('config.py', 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    for i, line in enumerate(lines):
+        if line.strip().startswith('CHAT_LIST'):
+            new_line = f"CHAT_LIST = {chat_list}\n"
+            lines[i] = new_line
+            break
+    
+    with open('config.py', 'w', encoding='utf-8') as f:
+        f.writelines(lines)
+    
+    return True

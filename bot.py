@@ -22,10 +22,10 @@ from handlers.documents import router_documents
 from handlers.dormitory import router_dormitory
 from handlers.help import router_help
 
-from utils import main_menu_text, get_menu_text, safe_edit_message
+from utils import main_menu_text, get_menu_text, safe_edit_message, add_chat_to_config, remove_chat_from_config
 import stats
 
-from config import TG_TOKEN
+from config import TG_TOKEN, ADMINS, CHAT_LIST
 
 # Настройка логирования
 EKB_TZ = ZoneInfo("Asia/Yekaterinburg")
@@ -199,6 +199,9 @@ from aiogram.filters import Command
 
 @dp.message(Command("check"))
 async def cmd_check(message: Message):
+    if message.from_user.id not in ADMINS:
+        await message.answer("❌ У вас нет прав для использования этой команды")
+        return
     # Создаем кнопку запроса чата
     # request_id - любой уникальный ID запроса, чтобы различать кнопки
     btn_request = KeyboardButton(
@@ -224,18 +227,159 @@ async def cmd_check(message: Message):
         reply_markup=keyboard
     )
 
+@dp.message(Command("add_chat"))
+async def cmd_add_chat(message: Message):
+    if message.from_user.id not in ADMINS:
+        await message.answer("❌ У вас нет прав для использования этой команды")
+        return
+    
+    btn = KeyboardButton(
+        text="📢 Выбрать группу", 
+        request_chat=KeyboardButtonRequestChat(
+            request_id=1489,
+            request_title=True,
+            chat_is_channel=False,
+            chat_is_forum=False
+        )
+    )
+    
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[btn]],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    
+    await message.answer("Выбери группу для добавления:", reply_markup=keyboard)
+
+@dp.message(Command("remove_chat"))
+async def cmd_remove_chat(message: Message):
+    if message.from_user.id not in ADMINS:
+        await message.answer("❌ У вас нет прав для использования этой команды")
+        return
+    
+    btn = KeyboardButton(
+        text="🗑 Выбрать группу для удаления", 
+        request_chat=KeyboardButtonRequestChat(
+            request_id=1490,  # Новый ID для удаления
+            request_title=True,
+            chat_is_channel=False,
+            chat_is_forum=False
+        )
+    )
+    
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[btn]],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    
+    await message.answer("Выбери группу для удаления:", reply_markup=keyboard)
+
+@dp.message(Command("list_chats"))
+async def cmd_list_chats(message: Message):
+    """Показывает список всех групп в CHAT_LIST"""
+    if message.from_user.id not in ADMINS:
+        await message.answer("❌ У вас нет прав для использования этой команды")
+        return
+    
+    if not CHAT_LIST:
+        await message.answer("📋 Список групп пуст")
+        return
+    
+    await message.answer("🔍 Получаю информацию о группах...")
+    
+    result_lines = ["📋 <b>Список групп для проверки:</b>\n"]
+    
+    for chat_id in CHAT_LIST:
+        try:
+            # Получаем информацию о чате
+            chat = await bot.get_chat(chat_id)
+            title = chat.title or "Без названия"
+            
+            result_lines.append(
+                f"• <b>{title}</b>\n"
+                f"  └ ID: <code>{chat_id}</code>\n"
+            )
+        except Exception as e:
+            # Если бот не может получить инфо (нет доступа, чат удалён и т.д.)
+            result_lines.append(
+                f"• ❌ <i>Недоступно</i>\n"
+                f"  └ ID: <code>{chat_id}</code>\n"
+                f"  └ Ошибка: {type(e).__name__}\n"
+            )
+    
+    result_lines.append(f"\n<b>Всего групп:</b> {len(CHAT_LIST)}")
+    
+    await message.answer("".join(result_lines))
+    
+    dbtools.update_last_request(message.from_user.id)
+    stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "command:/list_chats")
+
+
 #  Ловит результат выбора (ID группы)
 @dp.message(F.chat_shared)
 async def on_chat_shared(message: Message):
     chat_id = message.chat_shared.chat_id
     chat_title = message.chat_shared.title
-    dbtools.update_last_request(message.from_user.id)
-    stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "chat_shared")
+    request_id = message.chat_shared.request_id
     
-    await message.answer(
-        f"✅ Вы выбрали группу: <b>{chat_title}</b>\n"
-        f"🆔 ID группы: <code>{chat_id}</code>"
-    )
+    # Команда /check - просто показываем ID
+    if request_id == 1488:
+        await message.answer(
+            f"✅ Группа: <b>{chat_title}</b>\n"
+            f"🆔 ID: <code>{chat_id}</code>"
+        )
+        return
+    
+    # Команда /add_chat - добавляем в config
+    if request_id == 1489:
+        if message.from_user.id not in ADMINS:
+            await message.answer("❌ Нет прав")
+            return
+        
+        try:
+            was_added = add_chat_to_config(chat_id, CHAT_LIST)
+            
+            if was_added:
+                await message.answer(
+                    f"✅ Добавлено: <b>{chat_title}</b>\n"
+                    f"🆔 ID: <code>{chat_id}</code>\n\n"
+                    f"✨ Изменения применены мгновенно!"
+                )
+                logger.info(f"Админ {message.from_user.id} добавил группу {chat_id}")
+            else:
+                await message.answer(
+                    f"ℹ️ Группа уже в списке: <b>{chat_title}</b>"
+                )
+        except Exception as e:
+            await message.answer(f"❌ Ошибка: {e}")
+            logger.error(f"Ошибка добавления чата: {e}", exc_info=e)
+        return
+    
+    # Команда /remove_chat - удаляем из config
+    if request_id == 1490:
+        if message.from_user.id not in ADMINS:
+            await message.answer("❌ Нет прав")
+            return
+        
+        try:
+            was_removed = remove_chat_from_config(chat_id, CHAT_LIST)
+            
+            if was_removed:
+                await message.answer(
+                    f"✅ Удалено: <b>{chat_title}</b>\n"
+                    f"🆔 ID: <code>{chat_id}</code>\n\n"
+                    f"✨ Изменения применены мгновенно!"
+                )
+                logger.info(f"Админ {message.from_user.id} удалил группу {chat_id}")
+            else:
+                await message.answer(
+                    f"ℹ️ Группы нет в списке: <b>{chat_title}</b>"
+                )
+        except Exception as e:
+            await message.answer(f"❌ Ошибка: {e}")
+            logger.error(f"Ошибка удаления чата: {e}", exc_info=e)
+
 
 
 @dp.message(F.text)

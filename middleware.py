@@ -10,7 +10,7 @@ from aiogram.exceptions import TelegramMigrateToChat
 import dbtools
 import stats
 import utils
-from config import CHAT_LIST
+from config import CHAT_LIST, ADMINS
 
 logger = logging.getLogger(__name__)
 MEMBERSHIP_TTL = timedelta(minutes=20)
@@ -36,6 +36,9 @@ def _should_skip_check(user: Dict[str, Any]) -> bool:
 
 
 async def check_user_in_group(bot, user_id, username: Optional[str] = None):
+    if user_id in ADMINS:
+        return True
+        
     user = dbtools.get_user(user_id)
     if not user and username:
         dbtools.add_user(user_id, username)
