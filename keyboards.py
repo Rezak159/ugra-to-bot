@@ -39,6 +39,7 @@ edu_menu = InlineKeyboardMarkup(inline_keyboard=[
 course_1_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Деятельностные практики', callback_data='edu_course1_practices')],
     [InlineKeyboardButton(text='Английский язык', callback_data='edu_course1_english')],
+    [InlineKeyboardButton(text='Расписание английский язык', url='https://www.google.com')],
     [InlineKeyboardButton(text='ЭДФК (физ-ра)', callback_data='edu_course1_edfk')],
     [InlineKeyboardButton(text='⏪ Назад', callback_data='back:edu_menu')],
     [InlineKeyboardButton(text='🏠 Главное меню', callback_data='main_menu')]

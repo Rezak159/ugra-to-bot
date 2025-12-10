@@ -232,3 +232,36 @@ def main_menu_text(first_name):
             f'Ты в главном меню. С чего начнём?\n')
 
     return content
+
+
+def update_chat_list_in_config(chat_list):
+    """
+    Сохраняет обновленный CHAT_LIST в config.py.
+    
+    Args:
+        chat_list: список ID чатов для сохранения
+    """
+    import os
+    config_path = os.path.join(os.path.dirname(__file__), 'config.py')
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Заменяем строку CHAT_LIST на новую с обновленным списком
+        import re
+        pattern = r'CHAT_LIST\s*=\s*\[.*?\]'
+        replacement = f'CHAT_LIST = {chat_list!r}'
+        new_content = re.sub(pattern, replacement, content)
+        
+        with open(config_path, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+            
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"CHAT_LIST обновлен в config.py: {chat_list}")
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Ошибка при сохранении CHAT_LIST в config.py: {e}", exc_info=e)

@@ -5,9 +5,11 @@ from typing import Callable, Dict, Any, Awaitable, Optional
 from datetime import datetime, timedelta
 
 from aiogram.enums import ChatMemberStatus
+from aiogram.exceptions import TelegramMigrateToChat
 
 import dbtools
 import stats
+import utils
 from config import CHAT_LIST
 
 logger = logging.getLogger(__name__)
@@ -44,22 +46,48 @@ async def check_user_in_group(bot, user_id, username: Optional[str] = None):
 
     try:
         is_member = False
-        for chat_id in CHAT_LIST:
-            member = await bot.get_chat_member(chat_id=chat_id, user_id=user_id)
+        for i, chat_id in enumerate(CHAT_LIST):
+            try:
+                member = await bot.get_chat_member(chat_id=chat_id, user_id=user_id)
 
-            # Проверяем статус пользователя
-            if member.status in [
-                ChatMemberStatus.MEMBER,
-                ChatMemberStatus.CREATOR,
-                ChatMemberStatus.ADMINISTRATOR
-            ]:
-                is_member = True
-                break
+                # Проверяем статус пользователя
+                if member.status in [
+                    ChatMemberStatus.MEMBER,
+                    ChatMemberStatus.CREATOR,
+                    ChatMemberStatus.ADMINISTRATOR
+                ]:
+                    is_member = True
+                    break
+            except TelegramMigrateToChat as e:
+                # Группа мигрировала в супергруппу
+                new_chat_id = e.migrate_to_chat_id
+                
+                logger.warning(
+                    f"Группа {chat_id} мигрировала в супергруппу {new_chat_id}. "
+                    f"Обновите CHAT_LIST в config.py"
+                )
+
+                CHAT_LIST[i] = new_chat_id
+                
+                # Сохраняем обновленный список в config.py
+                utils.update_chat_list_in_config(CHAT_LIST)
+                
+                # Повторяем запрос с новым ID
+                member = await bot.get_chat_member(chat_id=new_chat_id, user_id=user_id)
+                
+                if member.status in [
+                    ChatMemberStatus.MEMBER,
+                    ChatMemberStatus.CREATOR,
+                    ChatMemberStatus.ADMINISTRATOR
+                ]:
+                    is_member = True
+                    break
 
         if user:
             dbtools.set_member_status(user_id, is_member)
 
         return is_member
+        
     except Exception as e:
         logger.error(f"Ошибка при проверке членства пользователя {user_id}: {e}", exc_info=e)
         return bool(user and user.get("is_member"))
