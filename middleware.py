@@ -13,7 +13,7 @@ import utils
 from utils import load_ids
 
 logger = logging.getLogger(__name__)
-MEMBERSHIP_TTL = timedelta(minutes=20)
+MEMBERSHIP_TTL = timedelta(minutes=15)
 
 
 def _should_skip_check(user: Dict[str, Any]) -> bool:
