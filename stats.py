@@ -82,6 +82,51 @@ def _count_requests_for_day(target: date) -> int:
         return 0
 
 
+def get_stats_for_day(target: Optional[date] = None) -> Dict[str, Any]:
+    """
+    Возвращает статистику за указанную дату (по умолчанию - сегодня, Ekaterinburg TZ).
+    Считается в реальном времени без записи в файл.
+    """
+    _ensure_dirs()
+    if target is None:
+        target = datetime.now(EKB_TZ).date()
+
+    day_start = datetime.combine(target, time(0, 0, tzinfo=EKB_TZ))
+    day_end = datetime.combine(target, time(23, 59, 59, 999999, tzinfo=EKB_TZ))
+    active_7d_threshold = day_end - timedelta(days=7)
+
+    users = dbtools.get_all_users()
+    users_total = len(users)
+
+    new_users = 0
+    active_today = 0
+    active_7d = 0
+
+    for user in users:
+        reg_raw = user.get("registration_date")
+        reg_dt = _parse_dt(reg_raw)
+        if reg_dt and day_start <= reg_dt <= day_end:
+            new_users += 1
+
+        last_req_raw = user.get("last_request_date")
+        last_req = _parse_dt(last_req_raw)
+        if last_req:
+            if last_req >= day_start:
+                active_today += 1
+            if last_req >= active_7d_threshold:
+                active_7d += 1
+
+    requests_today = _count_requests_for_day(target)
+
+    return {
+        "users_total": users_total,
+        "new_users": new_users,
+        "active_today": active_today,
+        "active_7d": active_7d,
+        "requests_today": requests_today,
+    }
+
+
 def finalize_day(target: Optional[date] = None) -> Dict[str, Any]:
     """
     Финализирует статистику за указанный день (по умолчанию - вчера, Ekaterinburg TZ).

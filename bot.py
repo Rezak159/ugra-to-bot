@@ -287,8 +287,6 @@ async def cmd_list_chats(message: Message):
         await message.answer("📋 Список групп пуст")
         return
     
-    await message.answer("🔍 Получаю информацию о группах...")
-    
     result_lines = ["📋 <b>Список групп для проверки:</b>\n"]
     
     for chat_id in load_ids()["CHAT_LIST"]:
@@ -315,6 +313,32 @@ async def cmd_list_chats(message: Message):
     
     dbtools.update_last_request(message.from_user.id)
     stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "command:/list_chats")
+
+
+@dp.message(Command("stats"))
+async def cmd_stats(message: Message):
+    """Показывает краткую статистику за сегодня (только для админов)."""
+    if message.from_user.id not in load_ids()["ADMINS"]:
+        await message.answer("❌ У вас нет прав для использования этой команды")
+        return
+
+    try:
+        today_stats = stats.get_stats_for_day()
+
+        reply_lines = [
+            "📊 <b>Статистика за сегодня</b>\n",
+            f"• Всего пользователей: <b>{today_stats['users_total']}</b>\n",
+            f"• Новых сегодня: <b>{today_stats['new_users']}</b>\n",
+            f"• Активных сегодня: <b>{today_stats['active_today']}</b>\n",
+            f"• Активных за 7 дней: <b>{today_stats['active_7d']}</b>\n",
+            f"• Запросов сегодня: <b>{today_stats['requests_today']}</b>",
+        ]
+
+        await message.answer("".join(reply_lines))
+        dbtools.update_last_request(message.from_user.id)
+        stats.log_request(message.from_user.id, message.from_user.username or "Unknown", "command:/stats")
+    except Exception as exc:
+        await handle_interaction_error(message, exc)
 
 
 #  Ловит результат выбора (ID группы)
@@ -464,7 +488,6 @@ async def main():
 if __name__ == '__main__':
     try:
         logger.info("Запуск бота...")
-        print('Успешный запуск.')
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Остановка бота по запросу пользователя")
