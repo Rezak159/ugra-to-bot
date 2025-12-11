@@ -10,7 +10,7 @@ from aiogram.exceptions import TelegramMigrateToChat
 import dbtools
 import stats
 import utils
-from config import CHAT_LIST, ADMINS
+from utils import load_ids
 
 logger = logging.getLogger(__name__)
 MEMBERSHIP_TTL = timedelta(minutes=20)
@@ -36,7 +36,7 @@ def _should_skip_check(user: Dict[str, Any]) -> bool:
 
 
 async def check_user_in_group(bot, user_id, username: Optional[str] = None):
-    if user_id in ADMINS:
+    if user_id in load_ids()["ADMINS"]:
         return True
         
     user = dbtools.get_user(user_id)
@@ -49,7 +49,7 @@ async def check_user_in_group(bot, user_id, username: Optional[str] = None):
 
     try:
         is_member = False
-        for i, chat_id in enumerate(CHAT_LIST):
+        for i, chat_id in enumerate(load_ids()["CHAT_LIST"]):
             try:
                 member = await bot.get_chat_member(chat_id=chat_id, user_id=user_id)
 
@@ -70,10 +70,10 @@ async def check_user_in_group(bot, user_id, username: Optional[str] = None):
                     f"Обновите CHAT_LIST в config.py"
                 )
 
-                CHAT_LIST[i] = new_chat_id
-                
-                # Сохраняем обновленный список в config.py
-                utils.update_chat_list_in_config(CHAT_LIST)
+                chat_list = load_ids()["CHAT_LIST"]
+                chat_list[i] = new_chat_id
+                # Сохраняем обновленный список в ids.yaml
+                utils.update_chat_list_in_config(chat_list)
                 
                 # Повторяем запрос с новым ID
                 member = await bot.get_chat_member(chat_id=new_chat_id, user_id=user_id)

@@ -234,78 +234,64 @@ def main_menu_text(first_name):
     return content
 
 
+import yaml
+import os
+IDS_PATH = os.path.join(os.path.dirname(__file__), "ids.yaml")
+
+def load_ids():
+    """Загрузка ids.yaml в dict"""
+    with open(IDS_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+def save_ids(data):
+    """Сохранение dict обратно в ids.yaml (с красивым форматированием)"""
+    with open(IDS_PATH, "w", encoding="utf-8") as f:
+        yaml.dump(data, f, allow_unicode=True, sort_keys=False)
+
 def update_chat_list_in_config(chat_list):
     """
-    Сохраняет обновленный CHAT_LIST в config.py.
-    
+    Сохраняет обновленный CHAT_LIST в ids.yaml
     Args:
         chat_list: список ID чатов для сохранения
     """
-    import os
-    config_path = os.path.join(os.path.dirname(__file__), 'config.py')
-    
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Заменяем строку CHAT_LIST на новую с обновленным списком
-        import re
-        pattern = r'CHAT_LIST\s*=\s*\[.*?\]'
-        replacement = f'CHAT_LIST = {chat_list!r}'
-        new_content = re.sub(pattern, replacement, content)
-        
-        with open(config_path, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-            
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"CHAT_LIST обновлен в config.py: {chat_list}")
-        
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Ошибка при сохранении CHAT_LIST в config.py: {e}", exc_info=e)
+    data = load_ids()
+    data["CHAT_LIST"] = chat_list
+    save_ids(data)
 
-def add_chat_to_config(chat_id: int, chat_list):
-    """Добавляет chat_id в CHAT_LIST в памяти и в config.py"""
-    
-    if chat_id in chat_list:
+def add_chat_to_config(chat_id: int):
+    """Добавляет chat_id в CHAT_LIST в ids.yaml"""
+    data = load_ids()
+    if chat_id in data["CHAT_LIST"]:
         return False
-    
-    chat_list.append(chat_id)
-    
-    with open('config.py', 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-    
-    for i, line in enumerate(lines):
-        if line.strip().startswith('CHAT_LIST'):
-            new_line = f"CHAT_LIST = {chat_list}\n"
-            lines[i] = new_line
-            break
-
-    with open('config.py', 'w', encoding='utf-8') as f:
-        f.writelines(lines)
-    
+    data["CHAT_LIST"].append(chat_id)
+    save_ids(data)
     return True
 
-def remove_chat_from_config(chat_id: int, chat_list):
-    """Удаляет chat_id из CHAT_LIST в памяти и в config.py"""
-    
-    if chat_id not in chat_list:
+
+def add_admin_to_config(admin_id: int):
+    """Добавляет admin_id в ADMINS в ids.yaml"""
+    data = load_ids()
+    if admin_id in data["ADMINS"]:
         return False
-    
-    chat_list.remove(chat_id)
-    
-    with open('config.py', 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-    
-    for i, line in enumerate(lines):
-        if line.strip().startswith('CHAT_LIST'):
-            new_line = f"CHAT_LIST = {chat_list}\n"
-            lines[i] = new_line
-            break
-    
-    with open('config.py', 'w', encoding='utf-8') as f:
-        f.writelines(lines)
-    
+    data["ADMINS"].append(admin_id)
+    save_ids(data)
+    return True
+
+
+def remove_admin_from_config(admin_id: int):
+    """Удаляет admin_id из ADMINS в ids.yaml"""
+    data = load_ids()
+    if admin_id not in data["ADMINS"]:
+        return False
+    data["ADMINS"].remove(admin_id)
+    save_ids(data)
+    return True
+
+def remove_chat_from_config(chat_id: int):
+    """Удаляет chat_id из CHAT_LIST в ids.yaml"""
+    data = load_ids()
+    if chat_id not in data["CHAT_LIST"]:
+        return False
+    data["CHAT_LIST"].remove(chat_id)
+    save_ids(data)
     return True

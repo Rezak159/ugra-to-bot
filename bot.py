@@ -25,7 +25,8 @@ from handlers.help import router_help
 from utils import main_menu_text, get_menu_text, safe_edit_message, add_chat_to_config, remove_chat_from_config
 import stats
 
-from config import TG_TOKEN, ADMINS, CHAT_LIST
+from config import TG_TOKEN
+from utils import load_ids
 
 # Настройка логирования
 EKB_TZ = ZoneInfo("Asia/Yekaterinburg")
@@ -199,7 +200,7 @@ from aiogram.filters import Command
 
 @dp.message(Command("check"))
 async def cmd_check(message: Message):
-    if message.from_user.id not in ADMINS:
+    if message.from_user.id not in load_ids()["ADMINS"]:
         await message.answer("❌ У вас нет прав для использования этой команды")
         return
     # Создаем кнопку запроса чата
@@ -229,7 +230,7 @@ async def cmd_check(message: Message):
 
 @dp.message(Command("add_chat"))
 async def cmd_add_chat(message: Message):
-    if message.from_user.id not in ADMINS:
+    if message.from_user.id not in load_ids()["ADMINS"]:
         await message.answer("❌ У вас нет прав для использования этой команды")
         return
     
@@ -253,7 +254,7 @@ async def cmd_add_chat(message: Message):
 
 @dp.message(Command("remove_chat"))
 async def cmd_remove_chat(message: Message):
-    if message.from_user.id not in ADMINS:
+    if message.from_user.id not in load_ids()["ADMINS"]:
         await message.answer("❌ У вас нет прав для использования этой команды")
         return
     
@@ -278,11 +279,11 @@ async def cmd_remove_chat(message: Message):
 @dp.message(Command("list_chats"))
 async def cmd_list_chats(message: Message):
     """Показывает список всех групп в CHAT_LIST"""
-    if message.from_user.id not in ADMINS:
+    if message.from_user.id not in load_ids()["ADMINS"]:
         await message.answer("❌ У вас нет прав для использования этой команды")
         return
     
-    if not CHAT_LIST:
+    if not load_ids()["CHAT_LIST"]:
         await message.answer("📋 Список групп пуст")
         return
     
@@ -290,7 +291,7 @@ async def cmd_list_chats(message: Message):
     
     result_lines = ["📋 <b>Список групп для проверки:</b>\n"]
     
-    for chat_id in CHAT_LIST:
+    for chat_id in load_ids()["CHAT_LIST"]:
         try:
             # Получаем информацию о чате
             chat = await bot.get_chat(chat_id)
@@ -308,7 +309,7 @@ async def cmd_list_chats(message: Message):
                 f"  └ Ошибка: {type(e).__name__}\n"
             )
     
-    result_lines.append(f"\n<b>Всего групп:</b> {len(CHAT_LIST)}")
+    result_lines.append(f"\n<b>Всего групп:</b> {len(load_ids()['CHAT_LIST'])}")
     
     await message.answer("".join(result_lines))
     
@@ -333,12 +334,12 @@ async def on_chat_shared(message: Message):
     
     # Команда /add_chat - добавляем в config
     if request_id == 1489:
-        if message.from_user.id not in ADMINS:
+        if message.from_user.id not in load_ids()["ADMINS"]:
             await message.answer("❌ Нет прав")
             return
         
         try:
-            was_added = add_chat_to_config(chat_id, CHAT_LIST)
+            was_added = add_chat_to_config(chat_id)
             
             if was_added:
                 await message.answer(
@@ -358,12 +359,12 @@ async def on_chat_shared(message: Message):
     
     # Команда /remove_chat - удаляем из config
     if request_id == 1490:
-        if message.from_user.id not in ADMINS:
+        if message.from_user.id not in load_ids()["ADMINS"]:
             await message.answer("❌ Нет прав")
             return
         
         try:
-            was_removed = remove_chat_from_config(chat_id, CHAT_LIST)
+            was_removed = remove_chat_from_config(chat_id)
             
             if was_removed:
                 await message.answer(
